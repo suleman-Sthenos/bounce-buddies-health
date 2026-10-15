@@ -6,16 +6,26 @@ on:
   schedule:
     - cron: '17 */3 * * *'
   workflow_dispatch:
+    inputs:
+      drill:
+        description: 'Practice alarm: fail on purpose to check the email arrives'
+        type: boolean
+        default: false
 jobs:
   check:
     runs-on: ubuntu-24.04 # pinned: ubuntu-latest moves to Ubuntu 26 from 19 October 2026 (GitHub's notice on the first run); 24.04 has Chrome at /usr/bin/google-chrome
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
       - name: Check the live game
         env:
           CHROME: /usr/bin/google-chrome
         run: node bin/health-check.mjs
+      - name: Practice alarm
+        if: ${{ inputs.drill }}
+        run: |
+          echo 'Practice alarm: this run fails on purpose, to check that a failed health check reaches the owner by email.'
+          exit 1
