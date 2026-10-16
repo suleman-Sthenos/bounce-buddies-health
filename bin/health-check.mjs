@@ -14,7 +14,9 @@ for (const p of ['/privacy.html', '/support.html', '/og-image.png']) {
   const r = await fetch(SITE + p).catch(e => ({ status: 'error ' + e.message }));
   (r.status === 200 ? fine : problems).push(`${p} ${r.status}`);
 }
-const rep = await fetch(SITE + '/api/report').then(r => r.json()).catch(e => ({ error: e.message }));
+const readReports = () => fetch(SITE + '/api/report').then(r => r.json()).catch(e => ({ error: e.message }));
+let rep = await readReports(); // asked twice before raising an alarm: one read failed once right after a deploy (16 October 2026)
+if (rep.error || !Number.isInteger(rep.recentKinds)) { await new Promise(r => setTimeout(r, 5000)); rep = await readReports(); }
 if (rep.error || !Number.isInteger(rep.recentKinds)) problems.push('problem reports: no answer (' + (rep.error || JSON.stringify(rep)) + ')');
 else (rep.recentKinds ? problems : fine).push(`problem reports: ${rep.recentKinds} problem(s) seen in players' games in the last 3 hours (${rep.kinds} today, ${rep.reports} reports)`);
 for (const l of fine) console.log('ok   ' + l);
